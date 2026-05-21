@@ -1,0 +1,1355 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STATION (V-01)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: IBM Plex Mono (for tech/numbers), Inter (for clean UI), Silkscreen (for dot-matrix) -->
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=Silkscreen&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #000000;
+            /* Signature dot-grid texture reflecting stark industrial styling */
+            background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+            background-size: 16px 16px;
+            overflow-x: hidden;
+            color: #ffffff;
+        }
+        .font-mono-tech {
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        .font-ndot {
+            font-family: 'Silkscreen', monospace;
+            letter-spacing: -0.05em;
+        }
+        /* Stark Premium Card styling */
+        .stark-card {
+            background: rgba(10, 10, 10, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .stark-card:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+        /* Stark White Core Glows */
+        .stark-glow {
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.15);
+        }
+        .stark-glow-red {
+            box-shadow: 0 0 15px rgba(255, 47, 47, 0.4);
+        }
+        /* Custom minimalist scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.9);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+        /* Stark UI buttons */
+        .stark-btn-outline {
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: transparent;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .stark-btn-outline:hover {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+        .stark-btn-active {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
+        }
+        /* Active Red Accent status indicator */
+        .stark-red-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #FF2F2F;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        /* Input styling */
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.4) !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen relative pb-16">
+
+    <header class="border-b border-white/5 bg-black/80 backdrop-blur-md px-6 py-5 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            
+            <!-- Brand Info & Core State -->
+            <div class="flex items-center gap-4">
+                <!-- Red status dot resembling industrial hardware indicators -->
+                <div class="h-8 w-8 rounded-full border border-white/10 flex items-center justify-center relative bg-neutral-900">
+                    <span class="stark-red-dot animate-pulse"></span>
+                </div>
+                <div>
+                    <h1 class="font-ndot text-lg tracking-wider font-normal text-white">
+                        <span class="font-normal text-white">STATION</span>
+                    </h1>
+                    <p class="text-[9px] text-white/40 font-mono-tech tracking-widest uppercase">OS.VERSION // V-01-MEMBER</p>
+                </div>
+            </div>
+
+            <!-- Minimal Gamified Status (System Experience Level System) -->
+            <div class="flex items-center gap-4 bg-white/[0.03] border border-white/5 px-4 py-2 rounded-2xl">
+                <div class="text-left">
+                    <div class="text-[9px] text-white/40 font-mono-tech uppercase">SYSTEM LEVEL</div>
+                    <div class="flex items-baseline gap-1">
+                        <span id="player-level" class="text-xl font-ndot leading-none">01</span>
+                    </div>
+                </div>
+                <div class="h-8 w-[1px] bg-white/10"></div>
+                <div class="w-40 sm:w-48">
+                    <div class="flex justify-between text-[9px] font-mono-tech text-white/40 mb-1">
+                        <span>XP: <span id="current-xp" class="text-white">0</span>/<span id="next-level-xp">100</span></span>
+                        <span id="xp-percentage">0%</span>
+                    </div>
+                    <!-- Minimalist segmented progress bar -->
+                    <div class="w-full bg-white/5 h-1.5 rounded-full overflow-hidden p-[1px] border border-white/5">
+                        <div id="xp-bar" class="bg-white h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dot-Matrix Style Clock Widget -->
+            <div class="text-right">
+                <div id="digital-clock" class="text-2xl font-ndot text-white tracking-tight">00:00:00</div>
+                <div id="digital-date" class="text-[10px] text-white/40 font-mono-tech tracking-wider uppercase">FRI 22 MAY 2026</div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- ================= LEFT PANEL: 3D INDUSTRIAL CLOCK & AUDIO (4 Cols) ================= -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- Three.js Stark 3D Clock Container -->
+            <div class="stark-card p-5 flex flex-col gap-3 relative overflow-hidden">
+                <div class="flex justify-between items-center">
+                    <span class="text-[10px] font-mono-tech text-white/40 uppercase tracking-widest flex items-center gap-2">
+                        <span class="stark-red-dot"></span> CHRONO-3D DIAL
+                    </span>
+                    <span class="text-[9px] font-mono-tech text-white/30">DRAG TO ANGLE</span>
+                </div>
+                
+                <!-- Canvas Container for Three.js -->
+                <div id="clock-3d-container" class="w-full h-72 bg-black rounded-2xl relative border border-white/5 overflow-hidden">
+                    <!-- Loading state indicator -->
+                    <div id="gl-loading" class="absolute inset-0 flex flex-col items-center justify-center bg-black text-white/50 gap-2 z-10">
+                        <span class="text-[10px] font-ndot tracking-wider">LOADING HARDWARE...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Minimal Sound Generator (Synthesized Environmental Ambient V-01) -->
+            <div class="stark-card p-5 flex flex-col gap-4">
+                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                    <h2 class="text-xs font-mono-tech font-bold uppercase tracking-wider text-white">
+                        AMBIENT SYNTH // AUDIO-01
+                    </h2>
+                    <span class="text-[9px] font-mono-tech text-white/40">INTERNAL AUDIO SYNTHESIS</span>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <!-- Rain Ambient (Pink noise filter) -->
+                    <button id="btn-rain" onclick="toggleRainSound()" class="stark-btn-outline p-3 rounded-2xl flex flex-col items-start gap-1.5 text-left border border-white/10">
+                        <div class="flex justify-between w-full items-center">
+                            <span class="text-[11px] font-mono-tech text-white/80">RAIN SHIELD</span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-white/20" id="rain-led"></span>
+                        </div>
+                        <span class="text-[9px] text-white/40 font-mono-tech" id="rain-status">STANDBY</span>
+                    </button>
+
+                    <!-- Cosmic Drone (Binaural Drone Synth) -->
+                    <button id="btn-drone" onclick="toggleDroneSound()" class="stark-btn-outline p-3 rounded-2xl flex flex-col items-start gap-1.5 text-left border border-white/10">
+                        <div class="flex justify-between w-full items-center">
+                            <span class="text-[11px] font-mono-tech text-white/80">COSMIC DRONE</span>
+                            <span class="w-1.5 h-1.5 rounded-full bg-white/20" id="drone-led"></span>
+                        </div>
+                        <span class="text-[9px] text-white/40 font-mono-tech" id="drone-status">STANDBY</span>
+                    </button>
+                </div>
+
+                <!-- Flat minimalist volume slider -->
+                <div class="bg-white/[0.02] p-3 rounded-2xl border border-white/5 flex flex-col gap-1.5">
+                    <div class="flex justify-between text-[10px] font-mono-tech text-white/40">
+                        <span>VOLUME GAIN</span>
+                        <span id="volume-val">60%</span>
+                    </div>
+                    <input type="range" id="sound-volume" min="0" max="1" step="0.05" value="0.6" oninput="updateVolume(this.value)" class="w-full accent-white cursor-pointer bg-neutral-800 rounded-lg appearance-none h-[2px]">
+                </div>
+            </div>
+
+            <!-- Stark Notes Scratchpad -->
+            <div class="stark-card p-5 flex flex-col gap-3">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-mono-tech font-bold uppercase tracking-wider">MEMO DIRECTORY</h2>
+                    <span class="text-[9px] text-white/40 font-mono-tech">FLASH-ROM</span>
+                </div>
+                <textarea id="quick-notes" placeholder="作業中に得た着想や暗号キーの残骸を一時的に記録します（オートセーブ機能搭載）" class="w-full h-24 bg-white/[0.02] border border-white/10 rounded-2xl p-3 text-xs text-white/80 placeholder-white/20 focus:border-white/20 resize-none font-mono-tech leading-relaxed transition-all"></textarea>
+            </div>
+
+        </div>
+
+        <!-- ================= CENTER PANEL: DYNAMIC MATRIX FLOW & TIMER (4 Cols) ================= -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- CPU & RAM Hardware Matrix (Exposed visualizer) -->
+            <div class="stark-card p-5 flex flex-col gap-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-mono-tech font-bold uppercase tracking-wider">CORE SYSTEM THERMALS</h2>
+                    <span class="text-[9px] font-mono-tech text-white/30" id="sim-status">SYSTEM_ON</span>
+                </div>
+
+                <!-- Particle canvas themed like physical LED Matrix display -->
+                <div class="relative w-full h-44 bg-black rounded-2xl border border-white/10 overflow-hidden">
+                    <canvas id="flow-wind-canvas" class="w-full h-full block"></canvas>
+                    <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black to-transparent p-3 flex justify-between items-center text-[9px] font-mono-tech text-white/40">
+                        <span>MATRIX_ACTIVE</span>
+                        <span>FAN: <span id="fan-speed" class="text-white">1800 RPM</span></span>
+                        <span>TEMP: <span id="sys-temp" class="text-white">36</span>°C</span>
+                    </div>
+                </div>
+
+                <!-- Clean technical load meters -->
+                <div class="grid grid-cols-2 gap-4 bg-white/[0.02] p-3 rounded-2xl border border-white/5">
+                    <div>
+                        <div class="flex justify-between text-[10px] font-mono-tech text-white/40 mb-1">
+                            <span>CPU DATA</span>
+                            <span id="cpu-value" class="text-white font-medium">12%</span>
+                        </div>
+                        <div class="w-full bg-neutral-900 h-1 rounded-full overflow-hidden">
+                            <div id="cpu-bar" class="h-full bg-white transition-all duration-300" style="width: 12%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-[10px] font-mono-tech text-white/40 mb-1">
+                            <span>RAM DATA</span>
+                            <span id="ram-value" class="text-white font-medium">42%</span>
+                        </div>
+                        <div class="w-full bg-neutral-900 h-1 rounded-full overflow-hidden">
+                            <div id="ram-bar" class="h-full bg-white transition-all duration-300" style="width: 42%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stress simulator button -->
+                <div class="flex items-center justify-between text-right">
+                    <span class="text-[9px] font-mono-tech text-white/30">SYSTEM TEST HARNESS (STRESS)</span>
+                    <button onclick="triggerStressTest()" class="stark-btn-outline font-mono-tech text-[10px] py-1 px-3 rounded-xl">
+                        TEST LOAD
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stark Weather Node (Monochrome) -->
+            <div class="stark-card p-5 flex flex-col gap-4">
+                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                    <h2 class="text-xs font-mono-tech font-bold uppercase tracking-wider">METEO SENSOR</h2>
+                    <select id="weather-city" onchange="updateWeatherDisplay()" class="bg-black border border-white/10 rounded-xl px-2 py-0.5 text-[9px] text-white/80 font-mono-tech cursor-pointer">
+                        <option value="tokyo">TOKYO (JP)</option>
+                        <option value="kyoto" selected>KYOTO (JP)</option>
+                        <option value="london">LONDON (UK)</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-between items-center py-2">
+                    <div>
+                        <span id="weather-desc" class="text-[10px] text-white/40 font-mono-tech uppercase">CLEAR WEATHER</span>
+                        <!-- Custom dot-matrix temperature layout -->
+                        <div class="text-3xl font-ndot text-white mt-1" id="weather-temp">
+                            18.2°C
+                        </div>
+                        <div class="text-[10px] font-mono-tech text-white/40 mt-1 flex items-center gap-3">
+                            <span>HUM: <span id="weather-humidity" class="text-white">45%</span></span>
+                            <span>WIND: <span id="weather-wind" class="text-white">1.2m/s</span></span>
+                        </div>
+                    </div>
+                    <!-- Minimalist geometric representation of weather (pure CSS/FontAwesome styled monochrome) -->
+                    <div class="text-4xl text-white mr-2" id="weather-icon-div">
+                        <i class="fa-solid fa-circle"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stark Circular Core Progress Timer -->
+            <div class="stark-card p-5 flex flex-col gap-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-mono-tech font-bold uppercase tracking-wider">CORE CHRONOLOGY</h2>
+                    <span id="timer-mode" class="text-[9px] font-mono-tech text-white bg-white/10 px-2 py-0.5 rounded-full">WORK MODE</span>
+                </div>
+
+                <div class="flex flex-col items-center justify-center py-2">
+                    <div class="relative w-40 h-40 flex items-center justify-center">
+                        <!-- Progress SVG - stylized like curved physical LED strips -->
+                        <svg class="absolute inset-0 w-full h-full transform -rotate-90">
+                            <!-- Incomplete background track -->
+                            <circle cx="80" cy="80" r="70" class="stroke-neutral-900" stroke-width="2" fill="transparent"/>
+                            <!-- Active minimalist LED strip -->
+                            <circle id="timer-progress" cx="80" cy="80" r="70" class="stroke-white transition-all duration-300" stroke-width="2.5" stroke-dasharray="439.8" stroke-dashoffset="0" fill="transparent" stroke-linecap="round"/>
+                        </svg>
+                        
+                        <!-- Core Readings inside circular matrix -->
+                        <div class="text-center z-10">
+                            <span id="timer-display" class="text-3xl font-ndot text-white tracking-wide block">25:00</span>
+                            <span id="timer-sub" class="text-[9px] text-white/40 font-mono-tech uppercase tracking-widest">SESSION STREAM</span>
+                        </div>
+                    </div>
+
+                    <!-- Clean physical controls -->
+                    <div class="flex gap-2 mt-5 w-full">
+                        <button id="timer-start" onclick="toggleTimer()" class="flex-grow stark-btn-outline py-2 px-3 rounded-2xl text-[11px] font-mono-tech font-bold uppercase tracking-wider flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-play text-[9px]" id="start-icon"></i> <span id="start-text">START</span>
+                        </button>
+                        <button onclick="resetTimer()" class="stark-btn-outline px-4 rounded-2xl text-[11px] font-mono-tech">
+                            <i class="fa-solid fa-rotate-right"></i>
+                        </button>
+                        <button onclick="switchTimerMode()" class="stark-btn-outline px-3 rounded-2xl text-[10px] font-mono-tech uppercase text-white/60">
+                            SWAP
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ================= RIGHT PANEL: TASK DIRECTORY & TIME STREAMS (4 Cols) ================= -->
+        <div class="lg:col-span-4 flex flex-col gap-6">
+            
+            <!-- ToDo Task Registry -->
+            <div class="stark-card p-5 flex flex-col gap-4">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-xs font-mono-tech font-bold uppercase tracking-wider">TASK MATRIX</h2>
+                    <span class="text-[9px] font-mono-tech text-white/40 bg-white/5 px-2 py-0.5 rounded-full" id="todo-count">0 ACT</span>
+                </div>
+
+                <!-- Input task form -->
+                <form id="todo-form" onsubmit="addTodo(event)" class="flex gap-2">
+                    <input type="text" id="todo-input" placeholder="新たなミッションをキューに追加..." class="flex-grow bg-white/[0.02] border border-white/10 rounded-2xl px-4 py-2 text-xs text-white placeholder-white/20 transition-all font-mono-tech">
+                    <button type="submit" class="stark-btn-outline px-4 rounded-2xl text-sm transition-all flex items-center justify-center">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </form>
+
+                <!-- Dynamic tasks stack -->
+                <div id="todo-list" class="flex flex-col gap-2 max-h-[190px] overflow-y-auto pr-1">
+                    <!-- Tasks injected by script -->
+                    <div class="text-center py-6 text-white/30 text-xs font-mono-tech">
+                        EMPTY DIRECTORY
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schedule Timetable blocks -->
+            <div class="stark-card p-5 flex flex-col gap-4">
+                <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                    <h2 class="text-xs font-mono-tech font-bold uppercase tracking-wider">DAILY TIMELINE</h2>
+                    <button onclick="openScheduleModal()" class="stark-btn-outline text-[9px] py-1 px-3 rounded-xl font-mono-tech">
+                        ADD SEQUENCE
+                    </button>
+                </div>
+
+                <!-- Time block items -->
+                <div id="schedule-container" class="flex flex-col gap-2 max-h-[300px] overflow-y-auto pr-1">
+                    <!-- Dynamic timeline rows -->
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Modal for adding schedules -->
+    <div id="schedule-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="stark-card p-6 w-full max-w-md border border-white/15">
+            <h3 class="text-sm font-mono-tech font-bold text-white mb-4 uppercase tracking-widest flex items-center gap-2">
+                <span class="stark-red-dot"></span> ADD CHRONO EVENT
+            </h3>
+            
+            <div class="flex flex-col gap-4 font-mono-tech">
+                <div>
+                    <label class="text-[9px] text-white/40 mb-1 block">EVENT IDENTIFICATION</label>
+                    <input type="text" id="schedule-title" placeholder="例: システム構築, 戦略カンファレンス" class="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-3 py-2 text-xs text-white">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[9px] text-white/40 mb-1 block">START_TIME</label>
+                        <input type="time" id="schedule-start" class="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-3 py-2 text-xs text-white">
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-white/40 mb-1 block">END_TIME</label>
+                        <input type="time" id="schedule-end" class="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-3 py-2 text-xs text-white">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[9px] text-white/40 mb-1 block">CLASS TYPE</label>
+                    <select id="schedule-category" class="w-full bg-white/[0.02] border border-white/10 rounded-2xl px-3 py-2 text-xs text-white bg-black">
+                        <option value="code">SYS_DEV (DEVELOPMENT)</option>
+                        <option value="meet">SYS_MEET (CONFERENCE)</option>
+                        <option value="rest">RECHARGE (RECOVERY)</option>
+                        <option value="game">TACTICAL (TACTICAL TRAINING)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex gap-2 justify-end mt-6">
+                <button onclick="closeScheduleModal()" class="stark-btn-outline py-2 px-4 rounded-2xl text-[11px] font-mono-tech">
+                    ABORT
+                </button>
+                <button onclick="saveSchedule()" class="stark-btn-outline stark-btn-active py-2 px-4 rounded-2xl text-[11px] font-mono-tech">
+                    COMMIT SECTOR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stark minimalist Toast container (bottom-right) -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-xs"></div>
+
+    <!-- Footnote details -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-black/95 border-t border-white/5 py-2 px-6 z-40 flex justify-between items-center text-[8px] font-mono-tech text-white/30 tracking-widest uppercase">
+        <div>
+            HARDWARE CONSOLE // DEVICE V-01 INTEGRATION // ONLINE
+        </div>
+        <div>
+            MONOCHROME INDUSTRIAL INTERFACE 2026
+        </div>
+    </footer>
+
+    <script>
+        const STORAGE_KEYS = {
+            XP: 'stark_user_xp',
+            LEVEL: 'stark_user_level',
+            TODOS: 'stark_user_todos',
+            SCHEDULES: 'stark_user_schedules',
+            NOTES: 'stark_user_notes'
+        };
+
+        // Standard dynamic state
+        let playerXp = parseInt(localStorage.getItem(STORAGE_KEYS.XP)) || 0;
+        let playerLevel = parseInt(localStorage.getItem(STORAGE_KEYS.LEVEL)) || 1;
+        let todos = JSON.parse(localStorage.getItem(STORAGE_KEYS.TODOS)) || [
+            { id: 1, text: "Chrono-3D 軌道アングルの確認", completed: true },
+            { id: 2, text: "空間音響シンセシスの動作確認", completed: false },
+            { id: 3, text: "タイムラインに新規ミッションセクターを追加", completed: false }
+        ];
+        let schedules = JSON.parse(localStorage.getItem(STORAGE_KEYS.SCHEDULES)) || [
+            { id: 1, title: "情報整理 & メールパケット解読", start: "09:00", end: "10:00", category: "rest" },
+            { id: 2, title: "メインコア・プログラミング", start: "10:15", end: "12:00", category: "code" },
+            { id: 3, title: "タクティカル・シミュレーション", start: "21:00", end: "22:30", category: "game" }
+        ];
+
+        function notify(title, message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            // Stylized like Void OS system toast
+            toast.className = `bg-black border border-white/10 p-3 rounded-2xl flex gap-3 items-center transform translate-y-2 opacity-0 transition-all duration-300 shadow-2xl`;
+            
+            let iconElement = `<span class="stark-red-dot"></span>`;
+            if (type === 'success') {
+                iconElement = `<span class="w-1.5 h-1.5 rounded-full bg-white"></span>`;
+            } else if (type === 'level') {
+                iconElement = `<i class="fa-solid fa-crown text-[10px] text-white"></i>`;
+            }
+
+            toast.innerHTML = `
+                <div class="flex items-center justify-center">
+                    ${iconElement}
+                </div>
+                <div class="flex-grow font-mono-tech">
+                    <h4 class="text-[10px] font-bold text-white uppercase tracking-wider">${title}</h4>
+                    <p class="text-[9px] text-white/50 mt-0.5 leading-tight">${message}</p>
+                </div>
+            `;
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-1');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        const xpPerLevel = 100;
+        
+        function updateXpDisplay() {
+            const levelVal = document.getElementById('player-level');
+            const currentXpVal = document.getElementById('current-xp');
+            const nextLevelXpVal = document.getElementById('next-level-xp');
+            const xpBar = document.getElementById('xp-bar');
+            const xpPercentage = document.getElementById('xp-percentage');
+
+            // Formatted to double digit (e.g., 01, 02)
+            levelVal.innerText = playerLevel.toString().padStart(2, '0');
+            currentXpVal.innerText = playerXp;
+            
+            const nextLvlXp = playerLevel * xpPerLevel;
+            nextLevelXpVal.innerText = nextLvlXp;
+
+            const percentage = Math.min(100, Math.floor((playerXp / nextLvlXp) * 100));
+            xpBar.style.width = `${percentage}%`;
+            xpPercentage.innerText = `${percentage}%`;
+        }
+
+        function gainXp(amount) {
+            playerXp += amount;
+            const nextLvlXp = playerLevel * xpPerLevel;
+            
+            if (playerXp >= nextLvlXp) {
+                playerXp -= nextLvlXp;
+                playerLevel++;
+                notify("LEVEL_UP", `OSバージョンアップ: LEVEL ${playerLevel.toString().padStart(2, '0')}`, 'level');
+            } else {
+                notify("XP_SYNCHRONIZED", `+${amount} XP SECURED`, 'success');
+            }
+            
+            localStorage.setItem(STORAGE_KEYS.XP, playerXp);
+            localStorage.setItem(STORAGE_KEYS.LEVEL, playerLevel);
+            updateXpDisplay();
+        }
+
+        let audioCtx = null;
+        let rainNode = null;
+        let droneOscs = [];
+        let masterGain = null;
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                masterGain = audioCtx.createGain();
+                masterGain.gain.value = parseFloat(document.getElementById('sound-volume').value);
+                masterGain.connect(audioCtx.destination);
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function toggleRainSound() {
+            initAudioContext();
+            const btn = document.getElementById('btn-rain');
+            const led = document.getElementById('rain-led');
+            const status = document.getElementById('rain-status');
+
+            if (rainNode) {
+                // Stop noise
+                rainNode.stop();
+                rainNode = null;
+                btn.classList.remove('stark-btn-active');
+                led.className = "w-1.5 h-1.5 rounded-full bg-white/20";
+                status.innerText = "STANDBY";
+            } else {
+                // Generate Pure Soft Pink Noise (filtered)
+                const bufferSize = 2 * audioCtx.sampleRate;
+                const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                const output = noiseBuffer.getChannelData(0);
+                
+                let b0, b1, b2, b3, b4, b5, b6;
+                b0 = b1 = b2 = b3 = b4 = b5 = b6 = 0.0;
+                
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    b0 = 0.99886 * b0 + white * 0.0555179;
+                    b1 = 0.99332 * b1 + white * 0.0750759;
+                    b2 = 0.96900 * b2 + white * 0.1538520;
+                    b3 = 0.86650 * b3 + white * 0.3104856;
+                    b4 = 0.55000 * b4 + white * 0.5329522;
+                    b5 = -0.7616 * b5 - white * 0.0168980;
+                    output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
+                    output[i] *= 0.1; // adjust baseline amplitude
+                    b6 = white * 0.115926;
+                }
+
+                const noiseSource = audioCtx.createBufferSource();
+                noiseSource.buffer = noiseBuffer;
+                noiseSource.loop = true;
+
+                const rainFilter = audioCtx.createBiquadFilter();
+                rainFilter.type = 'lowpass';
+                rainFilter.frequency.value = 1000;
+
+                noiseSource.connect(rainFilter);
+                rainFilter.connect(masterGain);
+                
+                noiseSource.start(0);
+                rainNode = noiseSource;
+
+                btn.classList.add('stark-btn-active');
+                led.className = "w-1.5 h-1.5 rounded-full bg-red-500 stark-glow-red animate-pulse";
+                status.innerText = "SYNTHESIZING";
+                notify("RAIN SYNTH INITIATED", "集中用スタティック・ピンクノイズを再生開始", "success");
+            }
+        }
+
+        function toggleDroneSound() {
+            initAudioContext();
+            const btn = document.getElementById('btn-drone');
+            const led = document.getElementById('drone-led');
+            const status = document.getElementById('drone-status');
+
+            if (droneOscs.length > 0) {
+                // Stop active oscillators
+                droneOscs.forEach(osc => osc.stop());
+                droneOscs = [];
+                btn.classList.remove('stark-btn-active');
+                led.className = "w-1.5 h-1.5 rounded-full bg-white/20";
+                status.innerText = "STANDBY";
+            } else {
+                // Multi-voice Deep Binaural Space drone
+                const chords = [55, 82.4, 110, 164.8]; // Low frequency components
+                
+                chords.forEach((freq, index) => {
+                    const osc = audioCtx.createOscillator();
+                    const oscGain = audioCtx.createGain();
+                    
+                    osc.type = index === 3 ? 'triangle' : 'sine';
+                    osc.frequency.value = freq;
+                    
+                    // Ultra subtle volume levels
+                    oscGain.gain.value = index === 3 ? 0.005 : 0.06;
+                    
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 150;
+
+                    osc.connect(filter);
+                    filter.connect(oscGain);
+                    oscGain.connect(masterGain);
+                    
+                    osc.start(0);
+                    droneOscs.push(osc);
+                });
+
+                btn.classList.add('stark-btn-active');
+                led.className = "w-1.5 h-1.5 rounded-full bg-white stark-glow animate-pulse";
+                status.innerText = "SYNTHESIZING";
+                notify("DRONE SYNTH INITIATED", "宇宙の深奥をシミュレートする低周波音源を構築", "success");
+            }
+        }
+
+        function updateVolume(val) {
+            initAudioContext();
+            if (masterGain) {
+                masterGain.gain.value = parseFloat(val);
+                document.getElementById('volume-val').innerText = `${Math.round(val * 100)}%`;
+            }
+        }
+
+        let scene, camera, renderer, clockGroup;
+        let hrHand, minHand, secHand;
+        let isMouseDown = false;
+        let previousMousePosition = { x: 0, y: 0 };
+        let targetRotationX = 0;
+        let targetRotationY = 0;
+
+        function init3DClock() {
+            const container = document.getElementById('clock-3d-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // 1. Scene setup
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.1);
+
+            // 2. Camera setup
+            camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+            camera.position.set(0, 0, 7.5);
+
+            // 3. Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            const loadingOverlay = document.getElementById('gl-loading');
+            if (loadingOverlay) loadingOverlay.remove();
+
+            // 4. Monochrome Lights (Industrial stark illumination)
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(ambientLight);
+
+            // Spotlight casting deep hardware shadow
+            const spotlight = new THREE.SpotLight(0xffffff, 1.8);
+            spotlight.position.set(2, 4, 6);
+            spotlight.angle = Math.PI / 4;
+            scene.add(spotlight);
+
+            const backLight = new THREE.DirectionalLight(0xffffff, 0.25);
+            backLight.position.set(-2, -3, -4);
+            scene.add(backLight);
+
+            // 5. Build Stark Clock Assembly
+            clockGroup = new THREE.Group();
+
+            // Outer matte dark frame (Industrial casing)
+            const casingGeom = new THREE.TorusGeometry(2, 0.06, 16, 120);
+            const casingMat = new THREE.MeshStandardMaterial({
+                color: 0x1d1d1f,
+                metalness: 0.8,
+                roughness: 0.4
+            });
+            const casingMesh = new THREE.Mesh(casingGeom, casingMat);
+            clockGroup.add(casingMesh);
+
+            // Translucent glass face backplate
+            const backplateGeom = new THREE.CylinderGeometry(1.95, 1.95, 0.04, 64);
+            const backplateMat = new THREE.MeshPhysicalMaterial({
+                color: 0x111111,
+                transparent: true,
+                opacity: 0.7,
+                roughness: 0.15,
+                transmission: 0.85,
+                thickness: 0.2
+            });
+            const backplateMesh = new THREE.Mesh(backplateGeom, backplateMat);
+            backplateMesh.rotation.x = Math.PI / 2;
+            clockGroup.add(backplateMesh);
+
+            // Hourly dot markers (Signature matrix dot grid layout)
+            const dotGeom = new THREE.SphereGeometry(0.025, 16, 16);
+            const dotMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+
+            for (let i = 0; i < 12; i++) {
+                const angle = (i / 12) * Math.PI * 2;
+                // Double dots for 12 o'clock
+                if (i === 0) {
+                    const dot1 = new THREE.Mesh(dotGeom, dotMat);
+                    dot1.position.set(Math.sin(angle) * 1.75 - 0.04, Math.cos(angle) * 1.75, 0.05);
+                    const dot2 = new THREE.Mesh(dotGeom, dotMat);
+                    dot2.position.set(Math.sin(angle) * 1.75 + 0.04, Math.cos(angle) * 1.75, 0.05);
+                    clockGroup.add(dot1, dot2);
+                } else {
+                    const dot = new THREE.Mesh(dotGeom, dotMat);
+                    dot.position.set(Math.sin(angle) * 1.75, Math.cos(angle) * 1.75, 0.05);
+                    clockGroup.add(dot);
+                }
+            }
+
+            // 6. Ultra Sleek minimalist Hands
+            // Hour hand (Matte flat white)
+            const hrGeom = new THREE.BoxGeometry(0.08, 1.1, 0.03);
+            hrGeom.translate(0, 0.55, 0); // shift pivot
+            const handWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.6 });
+            hrHand = new THREE.Mesh(hrGeom, handWhiteMat);
+            hrHand.position.z = 0.08;
+            clockGroup.add(hrHand);
+
+            // Minute hand (Slightly longer, elegant white)
+            const minGeom = new THREE.BoxGeometry(0.05, 1.6, 0.03);
+            minGeom.translate(0, 0.8, 0);
+            minHand = new THREE.Mesh(minGeom, handWhiteMat);
+            minHand.position.z = 0.12;
+            clockGroup.add(minHand);
+
+            // Second hand (Ultra thin signature Red Dot hand)
+            const secGeom = new THREE.BoxGeometry(0.02, 1.8, 0.02);
+            secGeom.translate(0, 0.9, 0);
+            const handRedMat = new THREE.MeshBasicMaterial({ color: 0xFF2F2F });
+            secHand = new THREE.Mesh(secGeom, handRedMat);
+            secHand.position.z = 0.16;
+            clockGroup.add(secHand);
+
+            // Center Pin with red accent ring
+            const pinGeom = new THREE.CylinderGeometry(0.1, 0.1, 0.05, 32);
+            const pinMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.9 });
+            const pinMesh = new THREE.Mesh(pinGeom, pinMat);
+            pinMesh.rotation.x = Math.PI / 2;
+            pinMesh.position.z = 0.18;
+            clockGroup.add(pinMesh);
+
+            const redCenterGeom = new THREE.SphereGeometry(0.03, 16, 16);
+            const redCenterMesh = new THREE.Mesh(redCenterGeom, handRedMat);
+            redCenterMesh.position.z = 0.22;
+            clockGroup.add(redCenterMesh);
+
+            scene.add(clockGroup);
+
+            // Slight initial hardware rotation
+            targetRotationY = 0.15;
+            targetRotationX = 0.08;
+
+            // Drag behavior
+            container.addEventListener('mousedown', (e) => {
+                isMouseDown = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            container.addEventListener('mousemove', (e) => {
+                if (!isMouseDown) return;
+                const deltaMove = {
+                    x: e.clientX - previousMousePosition.x,
+                    y: e.clientY - previousMousePosition.y
+                };
+
+                targetRotationY += deltaMove.x * 0.005;
+                targetRotationX += deltaMove.y * 0.005;
+
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            window.addEventListener('mouseup', () => { isMouseDown = false; });
+
+            // Touch interactions
+            container.addEventListener('touchstart', (e) => {
+                isMouseDown = true;
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            });
+
+            container.addEventListener('touchmove', (e) => {
+                if (!isMouseDown) return;
+                const deltaMove = {
+                    x: e.touches[0].clientX - previousMousePosition.x,
+                    y: e.touches[0].clientY - previousMousePosition.y
+                };
+                targetRotationY += deltaMove.x * 0.005;
+                targetRotationX += deltaMove.y * 0.005;
+                previousMousePosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            });
+
+            container.addEventListener('touchend', () => { isMouseDown = false; });
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('clock-3d-container');
+            if (!container || !renderer) return;
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        function update3DClockHands() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            const ms = now.getMilliseconds();
+
+            // Rotational angles
+            const secAngle = -((seconds + ms / 1000) / 60) * Math.PI * 2;
+            const minAngle = -((minutes + seconds / 60) / 60) * Math.PI * 2;
+            const hrAngle = -(((hours % 12) + minutes / 60) / 12) * Math.PI * 2;
+
+            if (secHand) secHand.rotation.z = secAngle;
+            if (minHand) minHand.rotation.z = minAngle;
+            if (hrHand) hrHand.rotation.z = hrAngle;
+        }
+
+        function animate3DClock() {
+            requestAnimationFrame(animate3DClock);
+            update3DClockHands();
+
+            if (clockGroup) {
+                // Smooth physical damping
+                clockGroup.rotation.y += (targetRotationY - clockGroup.rotation.y) * 0.08;
+                clockGroup.rotation.x += (targetRotationX - clockGroup.rotation.x) * 0.08;
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        const windCanvas = document.getElementById('flow-wind-canvas');
+        const ctxWind = windCanvas.getContext('2d');
+        let dots = [];
+        const gridSize = 16; // Grid based mapping
+        let windSpeedFactor = 1.0;
+        let windDensityFactor = 1.0;
+
+        let cpuLoad = 12;
+        let ramLoad = 42;
+        let systemTemp = 36;
+        let fanSpeed = 1800;
+
+        class MatrixDot {
+            constructor() {
+                this.reset();
+                this.x = Math.random() * windCanvas.width;
+            }
+
+            reset() {
+                this.x = 0;
+                this.y = Math.floor(Math.random() * (windCanvas.height / gridSize)) * gridSize + gridSize / 2;
+                this.speed = (Math.random() * 1.5 + 0.5);
+                this.size = Math.random() > 0.8 ? 2 : 1;
+                this.opacity = Math.random() * 0.5 + 0.2;
+            }
+
+            update() {
+                this.x += this.speed * windSpeedFactor;
+                if (this.x > windCanvas.width) {
+                    this.reset();
+                }
+            }
+
+            draw() {
+                // Draw as clean sharp pixel squares reflecting dot LED hardware matrix
+                ctxWind.fillStyle = `rgba(255, 255, 255, ${this.opacity * windDensityFactor})`;
+                ctxWind.fillRect(this.x, this.y, this.size, this.size);
+            }
+        }
+
+        function initWindCanvas() {
+            windCanvas.width = windCanvas.parentElement.clientWidth;
+            windCanvas.height = windCanvas.parentElement.clientHeight || 176;
+
+            dots = [];
+            const count = 40;
+            for (let i = 0; i < count; i++) {
+                dots.push(new MatrixDot());
+            }
+
+            window.addEventListener('resize', () => {
+                if (windCanvas && windCanvas.parentElement) {
+                    windCanvas.width = windCanvas.parentElement.clientWidth;
+                    windCanvas.height = windCanvas.parentElement.clientHeight || 176;
+                }
+            });
+        }
+
+        function animateWind() {
+            // Keep background purely black, clean trailing
+            ctxWind.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctxWind.fillRect(0, 0, windCanvas.width, windCanvas.height);
+
+            // Draw clean background hardware grids
+            ctxWind.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctxWind.lineWidth = 1;
+            for (let x = 0; x < windCanvas.width; x += gridSize) {
+                ctxWind.beginPath();
+                ctxWind.moveTo(x, 0);
+                ctxWind.lineTo(x, windCanvas.height);
+                ctxWind.stroke();
+            }
+            for (let y = 0; y < windCanvas.height; y += gridSize) {
+                ctxWind.beginPath();
+                ctxWind.moveTo(0, y);
+                ctxWind.lineTo(windCanvas.width, y);
+                ctxWind.stroke();
+            }
+
+            // Draw the animated dots representing thermal stream
+            dots.forEach(dot => {
+                dot.update();
+                dot.draw();
+            });
+
+            requestAnimationFrame(animateWind);
+        }
+
+        // Simulating subtle real-world hardware metric fluctuations
+        setInterval(() => {
+            cpuLoad = Math.max(5, Math.min(95, cpuLoad + (Math.random() * 8 - 4)));
+            ramLoad = Math.max(30, Math.min(85, ramLoad + (Math.random() * 2 - 1)));
+            
+            // Thermal logic linked with CPU activity
+            systemTemp = Math.round(30 + (cpuLoad * 0.35) + (Math.random() * 1.5 - 0.75));
+            fanSpeed = Math.round(1200 + (cpuLoad * 35));
+
+            // Dynamic flow speed mapped directly
+            windSpeedFactor = 0.5 + (cpuLoad / 20);
+            windDensityFactor = 0.3 + (ramLoad / 100);
+
+            // Scale particle array elements dynamically based on load
+            const targetDots = Math.round(25 + (ramLoad * 0.5));
+            if (dots.length < targetDots) {
+                dots.push(new MatrixDot());
+            } else if (dots.length > targetDots) {
+                dots.pop();
+            }
+
+            updateThermalUI();
+        }, 2000);
+
+        function updateThermalUI() {
+            document.getElementById('cpu-value').innerText = `${Math.round(cpuLoad)}%`;
+            document.getElementById('cpu-bar').style.width = `${cpuLoad}%`;
+            document.getElementById('ram-value').innerText = `${Math.round(ramLoad)}%`;
+            document.getElementById('ram-bar').style.width = `${ramLoad}%`;
+            document.getElementById('fan-speed').innerText = `${fanSpeed} RPM`;
+            document.getElementById('sys-temp').innerText = systemTemp;
+        }
+
+        function triggerStressTest() {
+            notify("TEST RUN INITIATED", "シミュレート負荷率を最大値へ強制移行します", "warning");
+            cpuLoad = 95;
+            ramLoad = 80;
+            updateThermalUI();
+        }
+
+        const weatherPresets = {
+            tokyo: { temp: "18.2°C", desc: "DRIZZLE // ACID", hum: "78%", wind: "5.2m/s", icon: '<i class="fa-solid fa-cloud-showers-water"></i>' },
+            kyoto: { temp: "21.5°C", desc: "MISTY // VALLEY", hum: "55%", wind: "1.4m/s", icon: '<i class="fa-solid fa-cloud"></i>' },
+            london: { temp: "14.0°C", desc: "OVERCAST // DAMP", hum: "85%", wind: "6.1m/s", icon: '<i class="fa-solid fa-cloud-rain"></i>' }
+        };
+
+        function updateWeatherDisplay() {
+            const selected = document.getElementById('weather-city').value;
+            const data = weatherPresets[selected] || weatherPresets.tokyo;
+
+            document.getElementById('weather-desc').innerText = data.desc;
+            document.getElementById('weather-temp').innerText = data.temp;
+            document.getElementById('weather-humidity').innerText = data.hum;
+            document.getElementById('weather-wind').innerText = data.wind;
+            document.getElementById('weather-icon-div').innerHTML = data.icon;
+
+            notify("METEO UPDATE", `${selected.toUpperCase()} 観測情報をロード`, 'info');
+        }
+
+        let timerSeconds = 25 * 60;
+        let timerInterval = null;
+        let isTimerActive = false;
+        let originalDuration = 25 * 60;
+        let isRestMode = false;
+
+        function updateTimerUI() {
+            const mins = Math.floor(timerSeconds / 60);
+            const secs = timerSeconds % 60;
+            document.getElementById('timer-display').innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            // Adjust segment stroke
+            const circle = document.getElementById('timer-progress');
+            const totalDash = 439.8; // 2 * PI * 70
+            const fraction = timerSeconds / originalDuration;
+            const offset = totalDash * (1 - fraction);
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function toggleTimer() {
+            initAudioContext();
+            const startIcon = document.getElementById('start-icon');
+            const startText = document.getElementById('start-text');
+            const timerModeBadge = document.getElementById('timer-mode');
+
+            if (isTimerActive) {
+                // Pause sequence
+                clearInterval(timerInterval);
+                isTimerActive = false;
+                startIcon.className = "fa-solid fa-play text-[9px]";
+                startText.innerText = "START";
+                timerModeBadge.innerText = "SUSPENDED";
+            } else {
+                // Play sequence
+                isTimerActive = true;
+                startIcon.className = "fa-solid fa-pause text-[9px]";
+                startText.innerText = "PAUSE";
+                
+                timerModeBadge.innerText = isRestMode ? "RECOVERY CYCLE" : "CHRONO CYCLE";
+
+                timerInterval = setInterval(() => {
+                    timerSeconds--;
+                    updateTimerUI();
+
+                    if (timerSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        isTimerActive = false;
+                        startIcon.className = "fa-solid fa-play text-[9px]";
+                        startText.innerText = "START";
+                        
+                        if (!isRestMode) {
+                            gainXp(25); // Gamified reward
+                            notify("CYCLE COMPLETE", "作業インターバルを終了。+25 XP獲得", "success");
+                            setTimerMode(true);
+                        } else {
+                            notify("RECOVERY OVER", "回復サイクルが完了。作業を再開してください", "info");
+                            setTimerMode(false);
+                        }
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isTimerActive = false;
+            document.getElementById('start-icon').className = "fa-solid fa-play text-[9px]";
+            document.getElementById('start-text').innerText = "START";
+            setTimerMode(isRestMode);
+        }
+
+        function setTimerMode(rest) {
+            isRestMode = rest;
+            originalDuration = isRestMode ? 5 * 60 : 25 * 60;
+            timerSeconds = originalDuration;
+            
+            const modeBadge = document.getElementById('timer-mode');
+            const subTitle = document.getElementById('timer-sub');
+            
+            if (isRestMode) {
+                modeBadge.innerText = "RECOVERY CYCLE";
+                subTitle.innerText = "RECOVERY PHASE";
+            } else {
+                modeBadge.innerText = "CHRONO CYCLE";
+                subTitle.innerText = "SESSION PHASE";
+            }
+            updateTimerUI();
+        }
+
+        function switchTimerMode() {
+            setTimerMode(!isRestMode);
+            notify("INTERFACE SWITCHED", `時間軸を ${isRestMode ? '回復フェーズ' : '集中フェーズ'} へ切替`, 'info');
+        }
+
+        function saveTodosToStorage() {
+            localStorage.setItem(STORAGE_KEYS.TODOS, JSON.stringify(todos));
+        }
+
+        function renderTodos() {
+            const listContainer = document.getElementById('todo-list');
+            const activeCountBadge = document.getElementById('todo-count');
+            
+            if (todos.length === 0) {
+                listContainer.innerHTML = `
+                    <div class="text-center py-6 text-white/20 text-xs font-mono-tech uppercase">
+                        EMPTY DIRECTORY
+                    </div>
+                `;
+                activeCountBadge.innerText = "0 ACT";
+                return;
+            }
+
+            const activeCount = todos.filter(t => !t.completed).length;
+            activeCountBadge.innerText = `${activeCount} ACT`;
+
+            listContainer.innerHTML = todos.map(todo => `
+                <div class="flex items-center justify-between p-3 rounded-2xl border border-white/5 bg-white/[0.01] hover:bg-white/[0.04] transition-all group">
+                    <div class="flex items-center gap-3 flex-grow cursor-pointer" onclick="toggleTodoCompleted(${todo.id})">
+                        <!-- Square flat checkbox style -->
+                        <span class="w-4 h-4 rounded-md border ${todo.completed ? 'bg-white border-white text-black' : 'border-white/20'} flex items-center justify-center text-[9px]">
+                            ${todo.completed ? '<i class="fa-solid fa-check"></i>' : ''}
+                        </span>
+                        <span class="text-xs font-mono-tech transition-all ${todo.completed ? 'line-through text-white/30' : 'text-white/80'}">
+                            ${todo.text}
+                        </span>
+                    </div>
+                    <button onclick="deleteTodo(${todo.id})" class="opacity-0 group-hover:opacity-100 text-white/30 hover:text-white transition-all text-xs px-1">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function addTodo(event) {
+            event.preventDefault();
+            const input = document.getElementById('todo-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const newTodo = {
+                id: Date.now(),
+                text: text,
+                completed: false
+            };
+
+            todos.push(newTodo);
+            saveTodosToStorage();
+            renderTodos();
+            
+            input.value = '';
+            gainXp(5);
+        }
+
+        function toggleTodoCompleted(id) {
+            todos = todos.map(todo => {
+                if (todo.id === id) {
+                    const nextState = !todo.completed;
+                    if (nextState) {
+                        gainXp(15); // Completion premium
+                    }
+                    return { ...todo, completed: nextState };
+                }
+                return todo;
+            });
+            saveTodosToStorage();
+            renderTodos();
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(todo => todo.id !== id);
+            saveTodosToStorage();
+            renderTodos();
+            notify("TASK REMOVED", "キューからタスクを消去しました", "info");
+        }
+
+        const categoryMap = {
+            code: { label: "DEVELOPMENT", colorClass: "text-white border-white/20 bg-white/[0.02]" },
+            meet: { label: "CONFERENCE", colorClass: "text-white border-white/20 bg-white/[0.02]" },
+            rest: { label: "RECOVERY", colorClass: "text-white border-white/20 bg-white/[0.02]" },
+            game: { label: "TACTICAL", colorClass: "text-white border-white/20 bg-white/[0.02]" }
+        };
+
+        function saveSchedulesToStorage() {
+            localStorage.setItem(STORAGE_KEYS.SCHEDULES, JSON.stringify(schedules));
+        }
+
+        function renderSchedules() {
+            const container = document.getElementById('schedule-container');
+            schedules.sort((a, b) => a.start.localeCompare(b.start));
+
+            if (schedules.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-6 text-white/20 text-xs font-mono-tech uppercase">
+                        NO ACTIVE SCHEDULERS
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = schedules.map(item => {
+                const preset = categoryMap[item.category] || categoryMap.code;
+                return `
+                    <div class="p-3.5 rounded-2xl border ${preset.colorClass} flex justify-between items-center group transition-all hover:bg-white/[0.04]">
+                        <div class="font-mono-tech">
+                            <div class="flex items-center gap-2">
+                                <span class="text-[8px] tracking-widest px-1.5 py-0.5 rounded bg-white/10 text-white/80">
+                                    ${preset.label}
+                                </span>
+                                <span class="text-xs font-medium text-white/90">${item.title}</span>
+                            </div>
+                            <div class="text-[9px] text-white/40 mt-1 flex items-center gap-1">
+                                <i class="fa-regular fa-clock mr-1"></i> ${item.start} - ${item.end}
+                            </div>
+                        </div>
+                        <button onclick="deleteSchedule(${item.id})" class="opacity-0 group-hover:opacity-100 text-white/40 hover:text-white transition-all text-xs">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openScheduleModal() {
+            document.getElementById('schedule-modal').classList.remove('hidden');
+        }
+
+        function closeScheduleModal() {
+            document.getElementById('schedule-modal').classList.add('hidden');
+        }
+
+        function saveSchedule() {
+            const titleInput = document.getElementById('schedule-title');
+            const startInput = document.getElementById('schedule-start');
+            const endInput = document.getElementById('schedule-end');
+            const categorySelect = document.getElementById('schedule-category');
+
+            const title = titleInput.value.trim();
+            const start = startInput.value;
+            const end = endInput.value;
+            const category = categorySelect.value;
+
+            if (!title || !start || !end) {
+                notify("INPUT COMPROMISED", "パラメータが空欄です。内容を確認してください", "warning");
+                return;
+            }
+
+            const newSchedule = {
+                id: Date.now(),
+                title,
+                start,
+                end,
+                category
+            };
+
+            schedules.push(newSchedule);
+            saveSchedulesToStorage();
+            renderSchedules();
+            closeScheduleModal();
+
+            titleInput.value = '';
+            startInput.value = '';
+            endInput.value = '';
+
+            gainXp(10);
+            notify("TIMESTREAM MODIFIED", "今日の予定をローカルコアに同期しました", "success");
+        }
+
+        function deleteSchedule(id) {
+            schedules = schedules.filter(item => item.id !== id);
+            saveSchedulesToStorage();
+            renderSchedules();
+            notify("EVENT DELETED", "スケジュールレコードを削除しました", "info");
+        }
+
+        function updateDigitalClock() {
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            
+            document.getElementById('digital-clock').innerText = `${hours}:${minutes}:${seconds}`;
+
+            const year = now.getFullYear();
+            const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            const monthStr = monthNames[now.getMonth()];
+            const date = now.getDate().toString().padStart(2, '0');
+            const days = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+            const dayStr = days[now.getDay()];
+
+            document.getElementById('digital-date').innerText = `${dayStr} ${date} ${monthStr} ${year}`;
+        }
+
+        const scratchpad = document.getElementById('quick-notes');
+        scratchpad.value = localStorage.getItem(STORAGE_KEYS.NOTES) || '';
+        
+        scratchpad.addEventListener('input', () => {
+            localStorage.setItem(STORAGE_KEYS.NOTES, scratchpad.value);
+        });
+
+        window.onload = function() {
+            // Instantiate hardware parts
+            init3DClock();
+            animate3DClock();
+
+            // Set up clean visual flows
+            initWindCanvas();
+            animateWind();
+
+            // Fire standard intervals
+            updateDigitalClock();
+            setInterval(updateDigitalClock, 1000);
+
+            // Fetch dynamic layout
+            updateXpDisplay();
+            renderTodos();
+            renderSchedules();
+            updateWeatherDisplay();
+            updateTimerUI();
+
+            setTimeout(() => {
+                notify("V-01 ONLINE", "STATION OS の同期が完了しました", "success");
+            }, 800);
+        };
+    </script>
+</body>
+</html>
