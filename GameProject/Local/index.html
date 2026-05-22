@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GameProject</title>
+    <link rel="stylesheet" href="./style.css">
+    <!-- Three.js本体の読み込み -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Socket.ioクライアントライブラリの読み込み -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.4/socket.io.min.js"></script>
+</head>
+
+<body>
+
+    <!-- 1. 起動時の名前入力画面 -->
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>表示名を入力してください</h2>
+            <input type="text" id="username-input" placeholder="名前を入力..." maxlength="10">
+            <button id="start-btn">世界に入る</button>
+        </div>
+    </div>
+
+    <!-- 2. メインのゲーム画面（最初は隠しておく） -->
+    <div id="game-screen" class="hidden">
+        <!-- チャット画面 -->
+        <div id="chat-container">
+            <div id="chat-log"></div>
+            <input type="text" id="chat-input" placeholder="チャットを入力... (Enterで送信)">
+        </div>
+        <!-- 3Dを描画するエリア -->
+        <div id="canvas-container"></div>
+    </div>
+
+    <script src="./script.js"></script>
+</body>
+
+</html>
