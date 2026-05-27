@@ -22,7 +22,7 @@ document.getElementById("start-btn").addEventListener("click", () => {
 
 
     // マルチプレイサーバーへの接続 (TryCloudflareのURLを指定)
-    state.socket = io("https://xxxxxxxxxxxxxxxxxxx.trycloudflare.com", {
+    state.socket = io("https://currencies-celebs-americas-create.trycloudflare.com", {
         transports: ["websocket"]
     });
 

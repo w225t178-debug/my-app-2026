@@ -1,0 +1,70 @@
+name: Automatic Cache Buster
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'index.html'
+      - '*.js'
+      - 'style.css'
+      - '.github/workflows/cache-bust.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cache-bust:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Cache Buster
+        run: |
+          node -e '
+          const fs = require("fs");
+          const path = require("path");
+
+          const version = process.env.GITHUB_SHA ? process.env.GITHUB_SHA.substring(0, 7) : Date.now().toString(36);
+          console.log(`Cache buster version: \${version}`);
+
+          // 1. Update index.html
+          const indexPath = path.join(process.cwd(), "index.html");
+          if (fs.existsSync(indexPath)) {
+            let content = fs.readFileSync(indexPath, "utf8");
+            // Match CSS reference
+            content = content.replace(/(href="\.?\/style\.css)(?:\?v=[a-zA-Z0-9]+)?(")/g, `$1?v=\${version}$2`);
+            // Match JS references in script tags
+            content = content.replace(/(src="\.?\/[a-zA-Z0-9_\-\/]+\.js)(?:\?v=[a-zA-Z0-9]+)?(")/g, `$1?v=\${version}$2`);
+            fs.writeFileSync(indexPath, content, "utf8");
+            console.log("Updated index.html");
+          }
+
+          // 2. Update JS files
+          const jsFiles = ["main.js", "utils.js", "multiplayer.js", "controls.js", "state.js"];
+          jsFiles.forEach(file => {
+            const filePath = path.join(process.cwd(), file);
+            if (fs.existsSync(filePath)) {
+              let content = fs.readFileSync(filePath, "utf8");
+              // Match import statements
+              content = content.replace(/(from\s+[\x27\x22]\.?\/[a-zA-Z0-9_\-\/]+\.js)(?:\?v=[a-zA-Z0-9]+)?([\x27\x22])/g, `$1?v=\${version}$2`);
+              fs.writeFileSync(filePath, content, "utf8");
+              console.log(`Updated \${file}`);
+            }
+          });
+          '
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html *.js
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: automatic cache busting [skip ci]"
+            git push origin main
+          fi
