@@ -305,7 +305,7 @@ export function createAvatarModel() {
     const silverMat = new THREE.MeshLambertMaterial({ color: 0xcfd8dc });
     const charcoalMat = new THREE.MeshLambertMaterial({ color: 0x37474f });
     const slateMat = new THREE.MeshLambertMaterial({ color: 0x546e7a });
-    const cyanMat = new THREE.MeshBasicMaterial({ color: 0x00e5ff });
+    const cyanMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
 
     const legGeo = new THREE.BoxGeometry(0.35, 0.8, 0.35);
 
