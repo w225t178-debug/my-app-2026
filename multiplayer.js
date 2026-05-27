@@ -1,6 +1,6 @@
 // multiplayer.js
-import { state, ui } from './state.js';
-import { createAvatarModel, attachNameTag, showChatBubble } from './utils.js';
+import { state, ui } from './state.js?v=${version}';
+import { createAvatarModel, attachNameTag, showChatBubble } from './utils.js?v=${version}';
 
 export function spawnOtherPlayer(playerInfo) {
     if (state.otherPlayers[playerInfo.id]) {
