@@ -21,17 +21,25 @@ document.getElementById("start-btn").addEventListener("click", () => {
     setupInputListeners();
 
 
-    // マルチプレイサーバーへの接続 (TryCloudflareのURLを指定)
-    state.socket = io("https://currencies-celebs-americas-create.trycloudflare.com", {
-        transports: ["websocket"]
-    });
+    // config.jsonからサーバーの接続先URLを取得して接続
+    fetch('./config.json?v=' + Date.now())
+        .then(res => res.json())
+        .then(config => {
+            state.socket = io(config.SERVER_URL, {
+                transports: ["websocket"]
+            });
 
-    state.socket.on("connect", () => {
-        console.log("マルチプレイサーバーに接続しました！");
-        state.socket.emit("join-game", { name: state.myName });
-    });
+            state.socket.on("connect", () => {
+                console.log("マルチプレイサーバーに接続しました！");
+                state.socket.emit("join-game", { name: state.myName });
+            });
 
-    setupMultiplayerListeners();
+            setupMultiplayerListeners();
+        })
+        .catch(err => {
+            console.error("設定ファイルの読み込みに失敗しました:", err);
+            alert("サーバー設定の読み込みに失敗しました。");
+        });
 });
 
 function initThreeJS() {
