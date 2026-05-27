@@ -1,5 +1,5 @@
 // utils.js
-import { state } from './state.js';
+import { state } from './state.js?v=${version}';
 import * as THREE from 'three';
 
 export function createTextSprite(message, parameters = {}) {

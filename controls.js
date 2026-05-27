@@ -1,6 +1,6 @@
 // controls.js
-import { state, ui } from './state.js';
-import { showChatBubble } from './utils.js';
+import { state, ui } from './state.js?v=${version}';
+import { showChatBubble } from './utils.js?v=${version}';
 
 export function setupInputListeners() {
     // キーボード操作

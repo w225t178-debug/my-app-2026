@@ -1,8 +1,8 @@
 // main.js
-import { state, ui } from './state.js';
-import { createAvatarModel, createTree, attachNameTag, updateChatBubbles } from './utils.js';
-import { setupMultiplayerListeners } from './multiplayer.js';
-import { setupInputListeners } from './controls.js';
+import { state, ui } from './state.js?v=${version}';
+import { createAvatarModel, createTree, attachNameTag, updateChatBubbles } from './utils.js?v=${version}';
+import { setupMultiplayerListeners } from './multiplayer.js?v=${version}';
+import { setupInputListeners } from './controls.js?v=${version}';
 import * as THREE from 'three';
 
 // ログインボタン処理
