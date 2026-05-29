@@ -1,8 +1,0 @@
-{
-    "SERVER_URL": "https://currencies-celebs-americas-create.trycloudflare.com"
-}
-
-//メモ:cloudflared tunnel --url http://localhost:3000
-// を実行し、ログの中のURLをSERVER_URLに書いた後プッシュをする
-//同時にserver.jsを立ち上げる必要がある
-//ターミナルを閉じるとURL,Cloudflare tunnelは破棄される
